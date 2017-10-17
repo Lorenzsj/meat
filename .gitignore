@@ -1,3 +1,9 @@
+# Bin
+meat
+
+# Vim
+*.swp
+
 # Prerequisites
 *.d
 

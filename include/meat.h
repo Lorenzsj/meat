@@ -1,1 +1,3 @@
-void run(void);
+int boot();
+
+int run(void);
