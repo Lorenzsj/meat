@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <error.h>
 #include <argp.h>
+#include <confuse.h>
 #include <meat.h>
 
 const char *argp_program_version =
@@ -92,6 +93,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main(int argc, char **argv) {
+    /* Handle command-line arguments */
     int i, j;
     struct arguments arguments;
 
@@ -104,6 +106,7 @@ int main(int argc, char **argv) {
        reflected in arguments. */
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
+    /* Command-line arguments */
     if (arguments.abort)
     {
         error(10, 0, "ABORTED");
@@ -118,8 +121,29 @@ int main(int argc, char **argv) {
     printf("\n");
     printf("config_file = %s\nlog_file = %s\n",
             arguments.config_file,
-            arguments.log_file);  
+            arguments.log_file); 
+   
+    /* Handle configuration file */
+    if (arguments.config_file != "-")
+    {
+        cfg_opt_t opts[] = 
+        {
+            CFG_STR("target", "World", CFGF_NONE),
+            CFG_END()
+        };
+        cfg_t *cfg;
+        
+        cfg = cfg_init(opts, CFGF_NONE);
+        if (cfg_parse(cfg, "meat.conf") == CFG_PARSE_ERROR)
+        {
+            return 1;
+        }
+        printf("Hello, %s!\n", cfg_getstr(cfg, "target"));
     
+        cfg_free(cfg);
+
+        return 0;
+    } 
     // begin meat loop
     run();
 
