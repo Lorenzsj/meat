@@ -116,9 +116,9 @@ int main(int argc, char **argv) {
         printf(j == 0 ? "%s" : ", %s", arguments.strings[j]);
     }
     printf("\n");
-    printf("log_file = %s\nconfig_file = %s\n",
-            arguments.log_file,
-            arguments.config_file);  
+    printf("config_file = %s\nlog_file = %s\n",
+            arguments.config_file,
+            arguments.log_file);  
     
     // begin meat loop
     run();

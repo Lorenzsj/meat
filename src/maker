@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-make && ./meat
+make && ./meat "arg1" -c "/path/to/config" -l "path/log" "str1" "str2"
