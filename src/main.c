@@ -1,7 +1,10 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <error.h>
 #include <argp.h>
 #include <confuse.h>
+#include <zlog.h>
 #include <meat.h>
 
 const char *argp_program_version =
@@ -12,15 +15,15 @@ const char *argp_program_bug_address =
 /* Program documentation. */
 static char doc[] = 
 "Meat is a simple interpreted language.\
-\vRun 'man meat' for more help with Meat.";
+\vSee 'man meat' for more help with Meat.";
 
-/* A description of the arguments we accept. */
+/* A description of the accepted arguments. */
 static char args_doc[] = "ARG1 [STRING...]";
 
 /* Keys for options without short-options. */
 #define OPT_ABORT 1              /* –abort */
 
-/* The options we understand. */
+/* Accepted Arguments */
 static struct argp_option options[] = 
 {
     { "config", 'c', "FILE", 0, "Load configuration file" },
@@ -35,7 +38,7 @@ struct arguments
 {
     char *arg1;        /* arg1 */
     char **strings;    /* [string…] */
-    int abort;         /* ‘--abort’ */
+    int  abort;        /* ‘--abort’ */
     char *log_file;    /* file arg to '--log'    */
     char *config_file; /* file arg to '--config_file' */
 };
@@ -94,7 +97,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main(int argc, char **argv) {
     /* Handle command-line arguments */
-    int i, j;
+    int j;
     struct arguments arguments;
 
     /* Default values. */
@@ -125,7 +128,7 @@ int main(int argc, char **argv) {
             arguments.log_file); 
    
     /* Handle configuration file */
-    if (arguments.config_file != "-")
+    if (strcmp(arguments.config_file, "-"))
     {
         /* Set default configurations */
         cfg_opt_t opts[] = 
@@ -140,7 +143,10 @@ int main(int argc, char **argv) {
         if (cfg_parse(cfg, arguments.config_file) == CFG_PARSE_ERROR)
         {
             printf("Error loading configuration file.\n");
+
+            return 1;
         }
+
         /* Configuration data */
         printf("Hello, %s!\n", cfg_getstr(cfg, "name"));
     
@@ -150,11 +156,32 @@ int main(int argc, char **argv) {
     }
     else
     {
-        printf("No configuration file. Moving on...\n");
+        printf("No configuration file specified. Moving on...\n");
+    }
+
+    /* Handle logging file */
+    if (strcmp(arguments.log_file, "-"))
+    {
+        int rc;
+
+        zlog_category_t *c;
+
+        rc = zlog_init("zlog.conf");
+        
+        if (rc)
+        {
+            printf("zlog init failed\n");
+
+            return 1;
+        }
+    }
+    else
+    {
+        printf("No logging file specified. Moving on...\n");
     }
  
     /* Begin Meat loop */
     run();
 
-    exit(0);
+    return 0;
 }

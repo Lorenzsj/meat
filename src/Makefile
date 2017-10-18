@@ -1,9 +1,10 @@
 IDIR =../include
 CC=gcc
-CFLAGS=-I$(IDIR)
+CFLAGS=-Wall -pedantic -I$(IDIR) -L$(LDIR) -lconfuse -lzlog -lpthread
+
 
 ODIR=obj
-LDIR =../lib
+LDIR =/usr/local/lib
 
 _DEPS = meat.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
@@ -16,8 +17,7 @@ $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS) -shared
 
 meat: $(OBJ)
-	gcc -o $@ $^ $(CFLAGS) -L/usr/local/lib -lconfuse
-
+	gcc -o $@ $^ $(CFLAGS) 
 .PHONY: clean
 
 clean:
