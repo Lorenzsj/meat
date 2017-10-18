@@ -89,7 +89,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     return 0;
 }
 
-/* Our argp parser. */
+/* Argp parser */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main(int argc, char **argv) {
@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
         error(10, 0, "ABORTED");
     }
 
+    /* Command-line data */
     printf ("ARG1 = %s\n", arguments.arg1);
     printf ("STRINGS = ");
     for (j = 0; arguments.strings[j]; j++)
@@ -126,20 +127,25 @@ int main(int argc, char **argv) {
     /* Handle configuration file */
     if (arguments.config_file != "-")
     {
+        /* Set default configurations */
         cfg_opt_t opts[] = 
         {
-            CFG_STR("target", "World", CFGF_NONE),
+            CFG_STR("name", "Meat", CFGF_NONE),
             CFG_END()
         };
         cfg_t *cfg;
-        
+       
+        /* Load configuration file */ 
         cfg = cfg_init(opts, CFGF_NONE);
-        if (cfg_parse(cfg, "meat.conf") == CFG_PARSE_ERROR)
+        if (cfg_parse(cfg, arguments.config_file) == CFG_PARSE_ERROR)
         {
             printf("Error loading configuration file.\n");
         }
-        printf("Hello, %s!\n", cfg_getstr(cfg, "target"));
+        /* Configuration data */
+        printf("Hello, %s!\n", cfg_getstr(cfg, "name"));
     
+
+        /* Clean up */
         cfg_free(cfg);
     }
     else
@@ -147,7 +153,7 @@ int main(int argc, char **argv) {
         printf("No configuration file. Moving on...\n");
     }
  
-    // begin meat loop
+    /* Begin Meat loop */
     run();
 
     exit(0);
