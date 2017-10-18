@@ -20,7 +20,7 @@ enum ERROR_CODES
  */
 int boot()
 {
-    printf("Booting Meat...\n"); // debug
+    printf("Booting Meat\n"); // debug
 
     return SUCCESS;
 }
@@ -30,7 +30,7 @@ int boot()
  */
 int shutdown(void)
 {
-    printf("Shutting down Meat...\n"); // debug
+    printf("Shutting down Meat\n"); // debug
 
     return SUCCESS;
 }

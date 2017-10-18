@@ -26,11 +26,11 @@ static char args_doc[] = "ARG1 [STRING...]";
 /* Accepted Arguments */
 static struct argp_option options[] = 
 {
-    { "config", 'c', "FILE", 0, "Load configuration file" },
-    { "log",    'l', "FILE", 0, "Write output to file"    },
+    {"config", 'c', "FILE", 0, "Load configuration file"},
+    {"log",    'l', 0,      0, "Write output to file"   },
 
-    { "abort",  OPT_ABORT, 0, 0, "Abort before showing any output" },
-    { 0 }
+    {"abort",  OPT_ABORT, 0, 0, "Abort before showing any output"},
+    {0}
 };
 
 /* Used by main to communicate with parse_opt. */
@@ -39,7 +39,7 @@ struct arguments
     char *arg1;        /* arg1 */
     char **strings;    /* [string…] */
     int  abort;        /* ‘--abort’ */
-    char *log_file;    /* file arg to '--log'    */
+    int  logging;    /* file arg to '--log'    */
     char *config_file; /* file arg to '--config_file' */
 };
 
@@ -57,7 +57,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             arguments->config_file = arg;
             break;
         case 'l':
-            arguments->log_file = arg;
+            arguments->logging = 1;
             break;
         case OPT_ABORT:
             arguments->abort = 1;
@@ -97,12 +97,12 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main(int argc, char **argv) {
     /* Handle command-line arguments */
-    int j;
+    int i;
     struct arguments arguments;
 
     /* Default values. */
     arguments.abort = 0;
-    arguments.log_file = "-";
+    arguments.logging = 0;
     arguments.config_file = "-";
 
     /* Parse our arguments; every option seen by parse_opt will be
@@ -118,14 +118,14 @@ int main(int argc, char **argv) {
     /* Command-line data */
     printf ("ARG1 = %s\n", arguments.arg1);
     printf ("STRINGS = ");
-    for (j = 0; arguments.strings[j]; j++)
+    for (i = 0; arguments.strings[i]; i++)
     {
-        printf(j == 0 ? "%s" : ", %s", arguments.strings[j]);
+        printf(i == 0 ? "%s" : ", %s", arguments.strings[i]);
     }
     printf("\n");
-    printf("config_file = %s\nlog_file = %s\n",
+    printf("config_file = %s\nlogging = %s\n",
             arguments.config_file,
-            arguments.log_file); 
+            arguments.logging ? "yes" : "no"); 
    
     /* Handle configuration file */
     if (strcmp(arguments.config_file, "-"))
@@ -148,25 +148,24 @@ int main(int argc, char **argv) {
         }
 
         /* Configuration data */
-        printf("Hello, %s!\n", cfg_getstr(cfg, "name"));
-    
+        printf("Hello, %s!\n", cfg_getstr(cfg, "name")); 
 
         /* Clean up */
         cfg_free(cfg);
     }
     else
     {
-        printf("No configuration file specified. Moving on...\n");
+        printf("No configuration file specified.\n");
     }
 
     /* Handle logging file */
-    if (strcmp(arguments.log_file, "-"))
+    if (arguments.logging)
     {
         int rc;
 
         zlog_category_t *c;
 
-        /* Load zlog configuration */
+        /* Load zlog configuration file */
         rc = zlog_init("zlog.conf");
         
         if (rc)
@@ -177,21 +176,22 @@ int main(int argc, char **argv) {
             return 1;
         }
 
+        /* Select category from file */
 	c = zlog_get_category("meat");
 	if (!c)
 	{
 	    printf("Get meat category failed.\n");
             zlog_fini();
+
             return 2;    
 	}
 
+        printf("Logging...\n");
+        /* Write data to file */
         zlog_info(c, "hello, zlog");
 
+        /* Close logging file */
         zlog_fini();
-    }
-    else
-    {
-        printf("No logging file specified. Moving on...\n");
     }
  
     /* Begin Meat loop */
