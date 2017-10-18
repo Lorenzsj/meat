@@ -136,14 +136,17 @@ int main(int argc, char **argv) {
         cfg = cfg_init(opts, CFGF_NONE);
         if (cfg_parse(cfg, "meat.conf") == CFG_PARSE_ERROR)
         {
-            return 1;
+            printf("Error loading configuration file.\n");
         }
         printf("Hello, %s!\n", cfg_getstr(cfg, "target"));
     
         cfg_free(cfg);
-
-        return 0;
-    } 
+    }
+    else
+    {
+        printf("No configuration file. Moving on...\n");
+    }
+ 
     // begin meat loop
     run();
 

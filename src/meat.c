@@ -14,11 +14,23 @@ enum ERROR_CODES
 };
 
 /** 
- * @brief Handle command-line arguments.
+ * @brief Assemble Meat. Allocate memory. 
+ *
+ * Handle command-line argument data. 
  */
 int boot()
 {
     printf("Booting Meat...\n"); // debug
+
+    return SUCCESS;
+}
+
+/**
+ * @brief Disassemble Meat. Free memory.
+ */
+int shutdown(void)
+{
+    printf("Shutting down Meat...\n"); // debug
 
     return SUCCESS;
 }
@@ -31,6 +43,8 @@ int run(void)
     boot();
 
     printf("Running Meat!\n"); // debug
+
+    shutdown();
 
     return SUCCESS;
 }
