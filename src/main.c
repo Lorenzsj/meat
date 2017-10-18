@@ -166,14 +166,28 @@ int main(int argc, char **argv) {
 
         zlog_category_t *c;
 
+        /* Load zlog configuration */
         rc = zlog_init("zlog.conf");
         
         if (rc)
         {
-            printf("zlog init failed\n");
+            /* Fail if configuration is not found */
+            printf("zlog configuration failed.\n");
 
             return 1;
         }
+
+	c = zlog_get_category("meat");
+	if (!c)
+	{
+	    printf("Get meat category failed.\n");
+            zlog_fini();
+            return 2;    
+	}
+
+        zlog_info(c, "hello, zlog");
+
+        zlog_fini();
     }
     else
     {
