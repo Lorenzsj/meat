@@ -97,10 +97,9 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main(int argc, char **argv) {
     /* Handle command-line arguments */
-    int i;
     struct arguments arguments;
 
-    /* Default values. */
+    /* Default argument values */
     arguments.abort = 0;
     arguments.logging = 0;
     arguments.config_file = "-";
@@ -109,61 +108,20 @@ int main(int argc, char **argv) {
        reflected in arguments. */
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-    /* Command-line arguments */
+    /* Command-line data */
+    /* Handle abort flag */
     if (arguments.abort)
     {
+        /* This flag is currently useless */
         error(10, 0, "ABORTED");
     }
 
-    /* Command-line data */
-    printf ("ARG1 = %s\n", arguments.arg1);
-    printf ("STRINGS = ");
-    for (i = 0; arguments.strings[i]; i++)
-    {
-        printf(i == 0 ? "%s" : ", %s", arguments.strings[i]);
-    }
-    printf("\n");
-    printf("config_file = %s\nlogging = %s\n",
-            arguments.config_file,
-            arguments.logging ? "yes" : "no"); 
-   
-    /* Handle configuration file */
-    if (strcmp(arguments.config_file, "-"))
-    {
-        /* Set default configurations */
-        cfg_opt_t opts[] = 
-        {
-            CFG_STR("name", "Meat", CFGF_NONE),
-            CFG_END()
-        };
-        cfg_t *cfg;
-       
-        /* Load configuration file */ 
-        cfg = cfg_init(opts, CFGF_NONE);
-        if (cfg_parse(cfg, arguments.config_file) == CFG_PARSE_ERROR)
-        {
-            printf("Error loading configuration file.\n");
-
-            return 1;
-        }
-
-        /* Configuration data */
-        printf("Hello, %s!\n", cfg_getstr(cfg, "name")); 
-
-        /* Clean up */
-        cfg_free(cfg);
-    }
-    else
-    {
-        printf("No configuration file specified.\n");
-    }
-
-    /* Handle logging file */
+    /* Handle logging flag */
+    /* The if below should kill main if debug is not defined */
+    zlog_category_t *debug;
     if (arguments.logging)
     {
         int rc;
-
-        zlog_category_t *c;
 
         /* Load zlog configuration file */
         rc = zlog_init("zlog.conf");
@@ -177,8 +135,8 @@ int main(int argc, char **argv) {
         }
 
         /* Select category from file */
-	c = zlog_get_category("meat");
-	if (!c)
+	debug = zlog_get_category("meat");
+	if (!debug)
 	{
 	    printf("Get meat category failed.\n");
             zlog_fini();
@@ -186,16 +144,66 @@ int main(int argc, char **argv) {
             return 2;    
 	}
 
-        printf("Logging...\n");
+        printf("Started logging\n"); // debug
         /* Write data to file */
-        zlog_info(c, "hello, zlog");
+        zlog_info(debug, "hello, zlog");
+    }
 
-        /* Close logging file */
-        zlog_fini();
+    /* Command-line data */
+    printf ("ARG1 = %s\n", arguments.arg1);
+    printf ("STRINGS = ");
+
+    int i;
+    for (i = 0; arguments.strings[i]; i++)
+    {
+        printf(i == 0 ? "%s" : ", %s", arguments.strings[i]);
+    }
+    printf("\n");
+    printf("config_file = %s\nlogging = %s\n",
+            arguments.config_file,
+            arguments.logging ? "yes" : "no"); 
+   
+    /* Handle configuration file */
+    if (strcmp(arguments.config_file, "-"))
+    {
+        printf("Loading configuration file\n"); // debug
+
+        /* Set default configurations */
+        cfg_opt_t opts[] = 
+        {
+            CFG_STR("name", "Meat", CFGF_NONE),
+            CFG_END()
+        };
+        cfg_t *cfg;
+       
+        /* Load configuration file */ 
+        cfg = cfg_init(opts, CFGF_NONE);
+        if (cfg_parse(cfg, arguments.config_file) == CFG_PARSE_ERROR)
+        {
+            printf("Error loading configuration file\n");
+
+            return 1;
+        }
+
+        /* Configuration data */
+        printf("Hello, %s!\n", cfg_getstr(cfg, "name")); 
+
+        /* Clean up */
+        cfg_free(cfg);
+
+        printf("Successfully loaded configuration file\n"); // debug
     }
  
     /* Begin Meat loop */
     run();
+
+    if (arguments.logging)
+    {
+        /* Close logging file */
+        zlog_fini();
+
+        printf("Stopped logging\n"); // debug
+    }
 
     return 0;
 }
