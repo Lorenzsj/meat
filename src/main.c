@@ -8,7 +8,7 @@
 #include <meat.h>
 
 const char *argp_program_version =
-    "meat 0.0.1";
+    "meat 0.0.2";
 const char *argp_program_bug_address =
     "<lorenzsj@clarkson.edu>";
 
@@ -136,6 +136,8 @@ int main(int argc, char **argv) {
 
         /* Select category from file */
 	debug = zlog_get_category("meat");
+
+        /* Fail if category is not found */
 	if (!debug)
 	{
 	    printf("Get meat category failed.\n");
@@ -145,11 +147,13 @@ int main(int argc, char **argv) {
 	}
 
         printf("Started logging\n"); // debug
+
         /* Write data to file */
         zlog_info(debug, "hello, zlog");
     }
 
     /* Command-line data */
+    /* Debug output */
     printf ("ARG1 = %s\n", arguments.arg1);
     printf ("STRINGS = ");
 
