@@ -9,6 +9,10 @@
 #include <zlog.h>
 #include <meat.h>
 
+/* See https://github.com/Lorenzsj/meat/wiki for more
+   information. */ 
+
+/* Argp */
 const char *argp_program_version =
     "meat 0.0.2";
 const char *argp_program_bug_address =
@@ -53,8 +57,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
        know is a pointer to our arguments structure. */
     struct arguments *arguments = state->input;
 
-    switch (key)
-    {
+    switch (key) {
         case 'c':
             arguments->config_file = arg;
             break;
@@ -94,31 +97,31 @@ parse_opt (int key, char *arg, struct argp_state *state)
     return 0;
 }
 
-/* Argp parser */
+/* Argp */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
-/* Perl embed */
+/* Perl */
 static PerlInterpreter *my_perl;
 
 int main(int argc, char **argv, char **env)
 {
-    /* Perl intepreter */
+    /* Perl */
+    /* Initialize interpreter */
     char *args[] = {NULL};
+
     PERL_SYS_INIT3(&argc, &argv, &env);
+
+    /* Create interpreter object */
     my_perl = perl_alloc();
     perl_construct(my_perl);
 
     perl_parse(my_perl, NULL, argc, argv, NULL);
     PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
 
-    /* Skip perl_run() */
-
+    /* Call debug subroutine from meat.pl */
     call_argv("debug", G_DISCARD | G_NOARGS, args);
 
-    perl_destruct(my_perl);
-    perl_free(my_perl);
-    PERL_SYS_TERM();
-
+    /* Argp */
     /* Handle command-line arguments */
     struct arguments arguments;
 
@@ -131,17 +134,18 @@ int main(int argc, char **argv, char **env)
        reflected in arguments. */
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
+    
+    /* Command-line handlers */
+    /* zlog */
     /* Handle logging flag */
     zlog_category_t *debug;
-    if (arguments.logging)
-    {
+    if (arguments.logging) {
         int rc;
 
         /* Load zlog configuration file */
         rc = zlog_init("zlog.conf");
         
-        if (rc)
-        {
+        if (rc) {
             printf("zlog: Unable to load config file\n");
 
             return 1;
@@ -151,8 +155,7 @@ int main(int argc, char **argv, char **env)
 	debug = zlog_get_category("meat");
 
         /* Fail if category is not found */
-	if (!debug)
-	{
+	if (!debug) {
 	    printf("zlog: Unable to get category meat\n");
             zlog_fini();
 
@@ -165,14 +168,12 @@ int main(int argc, char **argv, char **env)
         zlog_info(debug, "hello, zlog");
     }
 
-    /* Command-line data */
-    /* Debug output */
+    /* Argp debug output */
     printf ("ARG1 = %s\n", arguments.arg1);
     printf ("STRINGS = ");
 
     int i;
-    for (i = 0; arguments.strings[i]; i++)
-    {
+    for (i = 0; arguments.strings[i]; i++) {
         printf(i == 0 ? "%s" : ", %s", arguments.strings[i]);
     }
     printf("\n");
@@ -180,9 +181,9 @@ int main(int argc, char **argv, char **env)
             arguments.config_file,
             arguments.logging ? "yes" : "no"); 
    
+    /* libConfuse */
     /* Handle configuration file */
-    if (arguments.config_file)
-    {
+    if (arguments.config_file) {
         printf("Loading configuration file\n"); // debug
 
         /* Set default configurations */
@@ -195,8 +196,7 @@ int main(int argc, char **argv, char **env)
        
         /* Load configuration file */ 
         cfg = cfg_init(opts, CFGF_NONE);
-        if (cfg_parse(cfg, arguments.config_file) == CFG_PARSE_ERROR)
-        {
+        if (cfg_parse(cfg, arguments.config_file) == CFG_PARSE_ERROR) {
             printf("Error loading configuration file\n");
 
             return 1;
@@ -211,10 +211,8 @@ int main(int argc, char **argv, char **env)
         printf("Loaded configuration file\n"); // debug
     }
 
-    /* Command-line control flow */
     /* Handle abort flag */
-    if (arguments.abort)
-    {
+    if (arguments.abort) {
         /* This flag is currently useless */
         error(10, 0, "ABORTED");
     }
@@ -222,13 +220,18 @@ int main(int argc, char **argv, char **env)
     /* Begin Meat loop */
     meat_run();
 
-    if (arguments.logging)
-    {
+    if (arguments.logging) {
         /* Close logging file */
         zlog_fini();
 
         printf("Stopped logging\n"); // debug
     }
+
+    /* Perl embed */
+    /* Shutdown interpreter */
+    perl_destruct(my_perl);
+    perl_free(my_perl);
+    PERL_SYS_TERM();
 
     return 0;
 }
