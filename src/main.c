@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <error.h>
+#include <EXTERN.h>
+#include <perl.h>
 #include <argp.h>
 #include <confuse.h>
 #include <zlog.h>
@@ -95,7 +97,28 @@ parse_opt (int key, char *arg, struct argp_state *state)
 /* Argp parser */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
-int main(int argc, char **argv) {
+/* Perl embed */
+static PerlInterpreter *my_perl;
+
+int main(int argc, char **argv, char **env)
+{
+    /* Perl intepreter */
+    char *args[] = {NULL};
+    PERL_SYS_INIT3(&argc, &argv, &env);
+    my_perl = perl_alloc();
+    perl_construct(my_perl);
+
+    perl_parse(my_perl, NULL, argc, argv, NULL);
+    PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
+
+    /* Skip perl_run() */
+
+    call_argv("debug", G_DISCARD | G_NOARGS, args);
+
+    perl_destruct(my_perl);
+    perl_free(my_perl);
+    PERL_SYS_TERM();
+
     /* Handle command-line arguments */
     struct arguments arguments;
 

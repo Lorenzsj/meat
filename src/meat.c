@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <EXTERN.h>
-#include <perl.h>
+// #include <EXTERN.h>
+// #include <perl.h>
 
 enum ERROR_CODES
 {
