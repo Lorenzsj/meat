@@ -17,8 +17,19 @@ enum ERROR_CODES
 };
 
 /* Perl Embed */
-int meat_test(char *args[])
+int meat_perl(PerlInterpreter *my_perl, char *args[])
 {
+    /* Call debug subroutine from meat.pl */
+    call_argv("debug", G_DISCARD | G_NOARGS, args);
+
+    /* Treat $a as an integer */
+    eval_pv("$a = 3; $a **= 2", TRUE);
+    printf("a = %d\n", SvIV(get_sv("a", FALSE)));
+
+    /* Treat $a as a float */
+    eval_pv("$a = 3.14; $a *= 2", TRUE);
+    printf("a = %f\n", SvNV(get_sv("a", FALSE)));
+
     return 0;
 }
 

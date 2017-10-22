@@ -101,25 +101,25 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
 /* Perl */
-static PerlInterpreter *my_perl;
+PerlInterpreter *my_perl;
 
 static void
-PerlPower(int a, int b)
+perl_power(int a, int b)
 {
-  dSP;                            /* initialize stack pointer         */
-  ENTER;                          /* everything created after here    */
-  SAVETMPS;                       /* ...is a temporary variable.      */
-  PUSHMARK(SP);                   /* remember the stack pointer       */
-  XPUSHs(sv_2mortal(newSViv(a))); /* push the base onto the stack     */
-  XPUSHs(sv_2mortal(newSViv(b))); /* push the exponent onto stack     */
-  PUTBACK;                        /* make local stack pointer global  */
-  call_pv("expo", G_SCALAR);      /* call the function                */
-  SPAGAIN;                        /* refresh stack pointer            */
+    dSP;                            /* initialize stack pointer         */
+    ENTER;                          /* everything created after here    */
+    SAVETMPS;                       /* ...is a temporary variable.      */
+    PUSHMARK(SP);                   /* remember the stack pointer       */
+    XPUSHs(sv_2mortal(newSViv(a))); /* push the base onto the stack     */
+    XPUSHs(sv_2mortal(newSViv(b))); /* push the exponent onto stack     */
+    PUTBACK;                        /* make local stack pointer global  */
+    call_pv("expo", G_SCALAR);      /* call the function                */
+    SPAGAIN;                        /* refresh stack pointer            */
                                   /* pop the return value from stack  */
-  printf ("%d to the %dth power is %d.\n", a, b, POPi);
-  PUTBACK;
-  FREETMPS;                       /* free that return value           */
-  LEAVE;                          /* ...and the XPUSHed "mortal" args */
+    printf ("%d to the %dth power is %d.\n", a, b, POPi);
+    PUTBACK;
+    FREETMPS;                       /* free that return value           */
+    LEAVE;                          /* ...and the XPUSHed "mortal" args */
 }
 
 int main(int argc, char **argv, char **env)
@@ -148,7 +148,11 @@ int main(int argc, char **argv, char **env)
     eval_pv("$a = 3.14; $a *= 2", TRUE);
     printf("a = %f\n", SvNV(get_sv("a", FALSE)));
 
-    PerlPower(3, 4);
+    perl_power(3, 4);
+
+    /* Use perl interpreter in a seperate file */
+    printf("Running perl debug in meat.c\n");
+    meat_perl(my_perl, args);
 
     /* Call inline perl statement */
     STRLEN n_a;
