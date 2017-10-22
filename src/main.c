@@ -103,6 +103,25 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 /* Perl */
 static PerlInterpreter *my_perl;
 
+static void
+PerlPower(int a, int b)
+{
+  dSP;                            /* initialize stack pointer         */
+  ENTER;                          /* everything created after here    */
+  SAVETMPS;                       /* ...is a temporary variable.      */
+  PUSHMARK(SP);                   /* remember the stack pointer       */
+  XPUSHs(sv_2mortal(newSViv(a))); /* push the base onto the stack     */
+  XPUSHs(sv_2mortal(newSViv(b))); /* push the exponent onto stack     */
+  PUTBACK;                        /* make local stack pointer global  */
+  call_pv("expo", G_SCALAR);      /* call the function                */
+  SPAGAIN;                        /* refresh stack pointer            */
+                                  /* pop the return value from stack  */
+  printf ("%d to the %dth power is %d.\n", a, b, POPi);
+  PUTBACK;
+  FREETMPS;                       /* free that return value           */
+  LEAVE;                          /* ...and the XPUSHed "mortal" args */
+}
+
 int main(int argc, char **argv, char **env)
 {
     /* Perl */
@@ -120,6 +139,21 @@ int main(int argc, char **argv, char **env)
 
     /* Call debug subroutine from meat.pl */
     call_argv("debug", G_DISCARD | G_NOARGS, args);
+
+    /* Treat $a as an integer */
+    eval_pv("$a = 3; $a **= 2", TRUE);
+    printf("a = %d\n", SvIV(get_sv("a", FALSE)));
+
+    /* Treat $a as a float */
+    eval_pv("$a = 3.14; $a *= 2", TRUE);
+    printf("a = %f\n", SvNV(get_sv("a", FALSE)));
+
+    PerlPower(3, 4);
+
+    /* Call inline perl statement */
+    STRLEN n_a;
+    SV *val = eval_pv("reverse 'llaW yrraL'", TRUE);
+    printf("%s\n", SvPV(val,n_a));
 
     /* Argp */
     /* Handle command-line arguments */

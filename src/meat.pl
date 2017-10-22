@@ -5,6 +5,11 @@ use warnings;
 
 print "I shan't be printed.";
 
+sub expo {
+    my ($a, $b) = @_;
+    return $a ** $b;
+}
+
 sub debug {
     my $name = "Larry Wall";
 
@@ -20,4 +25,6 @@ sub debug {
 
     # print time
     printf("%d\n", time);
+
+    return 666;
 }

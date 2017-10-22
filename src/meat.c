@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-// #include <EXTERN.h>
-// #include <perl.h>
+#include <EXTERN.h>
+#include <perl.h>
 
 enum ERROR_CODES
 {
@@ -17,7 +17,10 @@ enum ERROR_CODES
 };
 
 /* Perl Embed */
-
+int meat_test(char *args[])
+{
+    return 0;
+}
 
 /** 
  * @brief Assemble Meat. Allocate memory. 
@@ -25,7 +28,7 @@ enum ERROR_CODES
  * Handle command-line argument data. 
  */
 int meat_boot(void)
-{
+{ 
     printf("Booting Meat\n"); // debug
 
     return SUCCESS;
