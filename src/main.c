@@ -39,7 +39,7 @@ struct arguments
     char *arg1;        /* arg1 */
     char **strings;    /* [string…] */
     int  abort;        /* ‘--abort’ */
-    int  logging;    /* file arg to '--log'    */
+    int  logging;      /* file arg to '--log' */
     char *config_file; /* file arg to '--config_file' */
 };
 
@@ -102,22 +102,13 @@ int main(int argc, char **argv) {
     /* Default argument values */
     arguments.abort = 0;
     arguments.logging = 0;
-    arguments.config_file = "-";
+    arguments.config_file = "meat.conf";
 
     /* Parse our arguments; every option seen by parse_opt will be
        reflected in arguments. */
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-    /* Command-line data */
-    /* Handle abort flag */
-    if (arguments.abort)
-    {
-        /* This flag is currently useless */
-        error(10, 0, "ABORTED");
-    }
-
     /* Handle logging flag */
-    /* The if below should kill main if debug is not defined */
     zlog_category_t *debug;
     if (arguments.logging)
     {
@@ -128,8 +119,7 @@ int main(int argc, char **argv) {
         
         if (rc)
         {
-            /* Fail if configuration is not found */
-            printf("zlog configuration failed.\n");
+            printf("zlog: Unable to load config file\n");
 
             return 1;
         }
@@ -140,7 +130,7 @@ int main(int argc, char **argv) {
         /* Fail if category is not found */
 	if (!debug)
 	{
-	    printf("Get meat category failed.\n");
+	    printf("zlog: Unable to get category meat\n");
             zlog_fini();
 
             return 2;    
@@ -168,7 +158,7 @@ int main(int argc, char **argv) {
             arguments.logging ? "yes" : "no"); 
    
     /* Handle configuration file */
-    if (strcmp(arguments.config_file, "-"))
+    if (arguments.config_file)
     {
         printf("Loading configuration file\n"); // debug
 
@@ -195,11 +185,19 @@ int main(int argc, char **argv) {
         /* Clean up */
         cfg_free(cfg);
 
-        printf("Successfully loaded configuration file\n"); // debug
+        printf("Loaded configuration file\n"); // debug
+    }
+
+    /* Command-line control flow */
+    /* Handle abort flag */
+    if (arguments.abort)
+    {
+        /* This flag is currently useless */
+        error(10, 0, "ABORTED");
     }
  
     /* Begin Meat loop */
-    run();
+    meat_run();
 
     if (arguments.logging)
     {

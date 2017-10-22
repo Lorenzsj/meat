@@ -1,10 +1,10 @@
 IDIR =../include
 CC=gcc
-CFLAGS=-Wall -pedantic -I$(IDIR) -L$(LDIR) -lconfuse -lzlog -lpthread
-
+CFLAGS=-Wall -pedantic -I$(IDIR) -L$(LDIR) -lconfuse -lzlog -lpthread -I$(PDIR) -L$(PDIR) -lperl -lm -Doff64_t=__off64_t
 
 ODIR=obj
-LDIR =/usr/local/lib
+LDIR=/usr/local/lib
+PDIR=/usr/lib/x86_64-linux-gnu/perl/5.22/CORE
 
 _DEPS = meat.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))

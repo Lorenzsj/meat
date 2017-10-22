@@ -7,18 +7,24 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <EXTERN.h>
+#include <perl.h>
 
 enum ERROR_CODES
 {
     SUCCESS = 0
 };
 
+/* Perl Embed */
+
+
 /** 
  * @brief Assemble Meat. Allocate memory. 
  *
  * Handle command-line argument data. 
  */
-int boot()
+int meat_boot(void)
 {
     printf("Booting Meat\n"); // debug
 
@@ -28,7 +34,7 @@ int boot()
 /**
  * @brief Disassemble Meat. Free memory.
  */
-int shutdown(void)
+int meat_shutdown(void)
 {
     printf("Shutting down Meat\n"); // debug
 
@@ -38,13 +44,13 @@ int shutdown(void)
 /** 
  * @brief Start runtime loop.
  */
-int run(void)
+int meat_run(void)
 {
-    boot();
+    meat_boot();
 
     printf("Running Meat!\n"); // debug
 
-    shutdown();
+    meat_shutdown();
 
     return SUCCESS;
 }
