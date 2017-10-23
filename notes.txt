@@ -1,7 +1,8 @@
 libConfuse:
   Problem: /usr/local/lib was not added to LD_LIBRARY_PATH by default
   Solution: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+  Better solution: sudo ldconfig
 
 perlEmbed:
   Problem: A type ‘off64_t’ cannot be found after including <perl.h>
-  Solution: Install the 'libembperl-perl' package on Ubuntu 
+  Solution: Install the 'libembperl-perl' package on Ubuntu and add -Doff64_t=__off64_t to Makefile
