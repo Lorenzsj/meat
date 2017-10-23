@@ -14,9 +14,14 @@
 
 enum MAIN_ERROR_CODES
 {
+    /* General */
     SUCCESS = 0,
+
+    /* zlog */
     ZLOG_ERR_CONF = 1,
     ZLOG_ERR_CAT = 2,
+
+    /* libConfuse */
     CONFUSE_ERR_CONF = 3 
 };
 
@@ -25,7 +30,7 @@ enum MAIN_ERROR_CODES
 #define OPT_ABORT 1              /* –abort */
 
 const char *argp_program_version =
-    "meat 0.0.2";
+    "meat 0.0.3";
 const char *argp_program_bug_address =
     "<lorenzsj@clarkson.edu>";
 
@@ -106,7 +111,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 /* Argp */
-static struct argp argp = { options, parse_opt, args_doc, doc };
+static struct argp argp = {options, parse_opt, args_doc, doc};
 
 /* Perl */
 static PerlInterpreter *my_perl;
@@ -144,7 +149,7 @@ int main(int argc, char **argv, char **env)
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
     
-    /* Command-line handlers */
+    /* Command-line argument handlers */
     /* zlog */
     /* Handle logging flag */
     zlog_category_t *debug;
@@ -173,7 +178,7 @@ int main(int argc, char **argv, char **env)
 
         printf("Started logging\n"); // debug
 
-        /* Write data to file */
+        /* Write data to log file */
         zlog_info(debug, "hello, zlog");
     }
 

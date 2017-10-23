@@ -5,7 +5,8 @@
 #include <perl.h>
 
 void 
-meat_perl_power(PerlInterpreter *my_perl, int a, int b);
+meat_perl_power(PerlInterpreter *my_perl,
+                int a, int b);
 
 int meat_perl(PerlInterpreter *my_perl);
 
