@@ -1,3 +1,11 @@
 #!/usr/bin/env bash
 
-clear && make && ./meat meat.pl -c "meat.conf" -l "str1" "str2"
+clear && make && ./meat meat.pl -c "meat.conf" -l "str1" "str2";
+
+if [ -e meat.log ]
+then
+    head -1 meat.log > meat.log.tmp && mv meat.log.tmp meat.log 
+else
+    echo "does not exist"
+fi
+
