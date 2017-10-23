@@ -10,9 +10,17 @@
 #include <meat.h>
 
 /* See https://github.com/Lorenzsj/meat/wiki for more
-   information. */ 
+   information. */
+
+enum MAIN_ERROR_CODES
+{
+    SUCCESS = 0
+};
 
 /* Argp */
+/* Keys for options without short-options. */
+#define OPT_ABORT 1              /* –abort */
+
 const char *argp_program_version =
     "meat 0.0.2";
 const char *argp_program_bug_address =
@@ -25,9 +33,6 @@ static char doc[] =
 
 /* A description of the accepted arguments. */
 static char args_doc[] = "ARG1 [STRING...]";
-
-/* Keys for options without short-options. */
-#define OPT_ABORT 1              /* –abort */
 
 /* Accepted Arguments */
 static struct argp_option options[] = 
@@ -101,33 +106,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
 /* Perl */
-PerlInterpreter *my_perl;
-
-static void
-perl_power(int a, int b)
-{
-    dSP;                            /* initialize stack pointer         */
-    ENTER;                          /* everything created after here    */
-    SAVETMPS;                       /* ...is a temporary variable.      */
-    PUSHMARK(SP);                   /* remember the stack pointer       */
-    XPUSHs(sv_2mortal(newSViv(a))); /* push the base onto the stack     */
-    XPUSHs(sv_2mortal(newSViv(b))); /* push the exponent onto stack     */
-    PUTBACK;                        /* make local stack pointer global  */
-    call_pv("expo", G_SCALAR);      /* call the function                */
-    SPAGAIN;                        /* refresh stack pointer            */
-                                  /* pop the return value from stack  */
-    printf ("%d to the %dth power is %d.\n", a, b, POPi);
-    PUTBACK;
-    FREETMPS;                       /* free that return value           */
-    LEAVE;                          /* ...and the XPUSHed "mortal" args */
-}
+static PerlInterpreter *my_perl;
 
 int main(int argc, char **argv, char **env)
 {
     /* Perl */
     /* Initialize interpreter */
-    char *args[] = {NULL};
-
     PERL_SYS_INIT3(&argc, &argv, &env);
 
     /* Create interpreter object */
@@ -137,27 +121,11 @@ int main(int argc, char **argv, char **env)
     perl_parse(my_perl, NULL, argc, argv, NULL);
     PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
 
-    /* Call debug subroutine from meat.pl */
-    call_argv("debug", G_DISCARD | G_NOARGS, args);
-
-    /* Treat $a as an integer */
-    eval_pv("$a = 3; $a **= 2", TRUE);
-    printf("a = %d\n", SvIV(get_sv("a", FALSE)));
-
-    /* Treat $a as a float */
-    eval_pv("$a = 3.14; $a *= 2", TRUE);
-    printf("a = %f\n", SvNV(get_sv("a", FALSE)));
-
-    perl_power(3, 4);
-
     /* Use perl interpreter in a seperate file */
-    printf("Running perl debug in meat.c\n");
-    meat_perl(my_perl, args);
-
-    /* Call inline perl statement */
-    STRLEN n_a;
-    SV *val = eval_pv("reverse 'llaW yrraL'", TRUE);
-    printf("%s\n", SvPV(val,n_a));
+    printf("Running perl in meat.c\n");
+    meat_perl(my_perl);
+    meat_perl_power(my_perl, 3, 4);
+    printf("Done running perl in meat.c\n");
 
     /* Argp */
     /* Handle command-line arguments */
@@ -265,7 +233,7 @@ int main(int argc, char **argv, char **env)
         printf("Stopped logging\n"); // debug
     }
 
-    /* Perl embed */
+    /* Perl */
     /* Shutdown interpreter */
     perl_destruct(my_perl);
     perl_free(my_perl);
