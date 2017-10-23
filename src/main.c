@@ -14,7 +14,10 @@
 
 enum MAIN_ERROR_CODES
 {
-    SUCCESS = 0
+    SUCCESS = 0,
+    ZLOG_ERR_CONF = 1,
+    ZLOG_ERR_CAT = 2,
+    CONFUSE_ERR_CONF = 3 
 };
 
 /* Argp */
@@ -99,7 +102,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             return ARGP_ERR_UNKNOWN;
     }
 
-    return 0;
+    return SUCCESS;
 }
 
 /* Argp */
@@ -154,7 +157,7 @@ int main(int argc, char **argv, char **env)
         if (rc) {
             printf("zlog: Unable to load config file\n");
 
-            return 1;
+            return ZLOG_ERR_CONF;
         }
 
         /* Select category from file */
@@ -165,8 +168,8 @@ int main(int argc, char **argv, char **env)
 	    printf("zlog: Unable to get category meat\n");
             zlog_fini();
 
-            return 2;    
-	}
+            return ZLOG_ERR_CAT; 
+        }
 
         printf("Started logging\n"); // debug
 
@@ -205,7 +208,7 @@ int main(int argc, char **argv, char **env)
         if (cfg_parse(cfg, arguments.config_file) == CFG_PARSE_ERROR) {
             printf("Error loading configuration file\n");
 
-            return 1;
+            return CONFUSE_ERR_CONF;
         }
 
         /* Configuration data */
@@ -239,5 +242,5 @@ int main(int argc, char **argv, char **env)
     perl_free(my_perl);
     PERL_SYS_TERM();
 
-    return 0;
+    return SUCCESS;
 }
