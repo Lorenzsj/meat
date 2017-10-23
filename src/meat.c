@@ -28,7 +28,7 @@ meat_perl_power(PerlInterpreter *my_perl, int a, int b)
     call_pv("expo", G_SCALAR);      /* call the function                */
     SPAGAIN;                        /* refresh stack pointer            */
                                     /* pop the return value from stack  */
-    printf ("Meat: %d to the %dth power is %d.\n", a, b, POPi);
+    printf("Meat: %d to the %dth power is %d.\n", a, b, POPi);
     PUTBACK;
     FREETMPS;                       /* free that return value           */
     LEAVE;                          /* ...and the XPUSHed "mortal" args */

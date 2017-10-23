@@ -40,7 +40,7 @@ static char doc[] =
 \vSee 'man meat' for more help with Meat.";
 
 /* A description of the accepted arguments. */
-static char args_doc[] = "ARG1 [STRING...]";
+static char args_doc[] = "FILE.pl [STRING...]";
 
 /* Accepted Arguments */
 static struct argp_option options[] = 
@@ -119,14 +119,18 @@ static PerlInterpreter *my_perl;
 int main(int argc, char **argv, char **env)
 {
     /* Perl */
+    char *perl_argv[] = {"meat", "meat.pl"};
+    int perl_argc = 2;
+
     /* Initialize interpreter */
     PERL_SYS_INIT3(&argc, &argv, &env);
 
     /* Create interpreter object */
     my_perl = perl_alloc();
     perl_construct(my_perl);
-
-    perl_parse(my_perl, NULL, argc, argv, NULL);
+ 
+    // perl_parse(my_perl, NULL, argc, argv, NULL);
+    perl_parse(my_perl, NULL, perl_argc, perl_argv, NULL);
     PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
 
     /* Use perl interpreter in a seperate file */
@@ -147,7 +151,6 @@ int main(int argc, char **argv, char **env)
     /* Parse our arguments; every option seen by parse_opt will be
        reflected in arguments. */
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
-
     
     /* Command-line argument handlers */
     /* zlog */
