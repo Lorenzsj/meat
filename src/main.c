@@ -8,10 +8,13 @@
 #include <confuse.h>
 #include <zlog.h>
 #include <meat.h>
-#include <camel.h>
+#include <unistd.h>
 
 /* See https://github.com/Lorenzsj/meat/wiki for more
    information. */
+
+/* There is an issue where some error returns do not
+   fully free memory. */
 
 enum MAIN_ERRORS
 {
@@ -23,7 +26,10 @@ enum MAIN_ERRORS
     ZLOG_ERR_CATEGORY = 2,
 
     /* libConfuse */
-    CONFUSE_ERR_CONF = 3 
+    CONFUSE_ERR_CONF = 3,
+
+    /* Perl */
+    PERL_ERR_FILE = 4
 };
 
 /* Argp */
@@ -115,25 +121,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
 /* Perl */
+/* camel.h has extern PerlInterpreter *my_perl */
 PerlInterpreter *my_perl;
 
 int main(int argc, char **argv, char **env)
 {
-    /* Perl */
-    char *perl_argv[] = {"meat", "meat.pl"};
-    int perl_argc = 2;
-
-    /* Initialize interpreter */
-    PERL_SYS_INIT3(&argc, &argv, &env);
-
-    /* Create interpreter object */
-    /* camel.c has an extern my_perl */
-    my_perl = perl_alloc();
-    perl_construct(my_perl);
- 
-    perl_parse(my_perl, NULL, perl_argc, perl_argv, NULL);
-    PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
-
     /* Argp */
     /* Handle command-line arguments */
     struct arguments arguments;
@@ -146,8 +138,20 @@ int main(int argc, char **argv, char **env)
     /* Parse our arguments; every option seen by parse_opt will be
        reflected in arguments. */
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
-    
-    /* Command-line argument handlers */
+
+    /* Argp debug output */
+    printf ("ARG1 = %s\n", arguments.arg1);
+    printf ("STRINGS = ");
+
+    int i;
+    for (i = 0; arguments.strings[i]; i++) {
+        printf(i == 0 ? "%s" : ", %s", arguments.strings[i]);
+    }
+    printf("\n");
+    printf("config_file = %s\nlogging = %s\n",
+            arguments.config_file,
+            arguments.logging ? "yes" : "no");
+
     /* zlog */
     zlog_category_t *debug;
 
@@ -168,8 +172,8 @@ int main(int argc, char **argv, char **env)
 	    debug = zlog_get_category("meat");
 
         /* Fail if category is not found */
-	    if (!debug) {
-	        printf("zlog: Unable to get category meat\n");
+	if (!debug) {
+	    printf("zlog: Unable to get category meat\n");
             zlog_fini();
 
             return ZLOG_ERR_CATEGORY; 
@@ -180,19 +184,6 @@ int main(int argc, char **argv, char **env)
         /* Write data to log file */
         zlog_info(debug, "hello, zlog");
     }
-
-    /* Argp debug output */
-    printf ("ARG1 = %s\n", arguments.arg1);
-    printf ("STRINGS = ");
-
-    int i;
-    for (i = 0; arguments.strings[i]; i++) {
-        printf(i == 0 ? "%s" : ", %s", arguments.strings[i]);
-    }
-    printf("\n");
-    printf("config_file = %s\nlogging = %s\n",
-            arguments.config_file,
-            arguments.logging ? "yes" : "no"); 
    
     /* libConfuse */
     /* Handle configuration file */
@@ -230,13 +221,35 @@ int main(int argc, char **argv, char **env)
         /* This flag is currently useless */
         error(10, 0, "ABORTED");
     }
+
+    /* Perl */
+    char *perl_argv[] = {"meat", "meat.pl"};
+    int perl_argc = 2;
+
+    /* Check if meat.pl is readable  */
+    if (access("meat.pl", R_OK) != -1) {
+        /* Initialize interpreter */
+        PERL_SYS_INIT3(&argc, &argv, &env);
+
+        /* Create interpreter object */
+        my_perl = perl_alloc();
+        perl_construct(my_perl);
  
-    /* Use perl interpreter in a seperate file */
-    printf("\nCalling Perl from camel.c\n");
-    camel();
-    camel_power(3, 4);
-    camel_test();
-    printf("Finished calling Perl from camel.c\n\n");
+        perl_parse(my_perl, NULL, perl_argc, perl_argv, NULL);
+
+        /* Die if anything goes wrong */
+        PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
+    }
+    else {
+        if (arguments.logging) {
+            zlog_fini();
+        
+            printf("Stopped logging\n"); // debug
+
+        }
+
+        return PERL_ERR_FILE;
+    }
 
     /* Begin Meat loop */
     meat_run();
@@ -244,6 +257,7 @@ int main(int argc, char **argv, char **env)
     if (arguments.logging) {
         /* Close logging file */
         zlog_fini();
+        
 
         printf("Stopped logging\n"); // debug
     }

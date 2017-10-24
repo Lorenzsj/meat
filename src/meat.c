@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <meat.h>
+#include <camel.h>
 
 enum MEAT_ERRORS
 {
@@ -44,9 +45,18 @@ int meat_run(void)
 {
     meat_boot();
 
+    meat_camel();
+
     printf("Running Meat!\n"); // debug
 
     meat_shutdown();
 
     return SUCCESS;
+}
+
+void meat_camel(void)
+{
+    camel();
+    camel_power(3, 4);
+    camel_test();
 }
