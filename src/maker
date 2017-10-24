@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-clear && make && ./meat meat.pl -c "meat.conf" -l "str1" "str2";
+mkdir -p -- obj
 
-if [ -e meat.log ]
+clear && make && ./meat meat.pl -c "meat.conf" -l "str1" "str2"
+
+if [ -e "meat.log" ]
 then
-    head -1 meat.log > meat.log.tmp && mv meat.log.tmp meat.log 
+    head -1 meat.log > meat.log.tmp && mv meat.log.tmp meat.log
 else
-    echo "does not exist"
+    echo "meat.log does not exist"
 fi
 

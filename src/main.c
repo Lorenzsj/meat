@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <error.h>
 #include <EXTERN.h>
 #include <perl.h>
@@ -8,13 +9,9 @@
 #include <confuse.h>
 #include <zlog.h>
 #include <meat.h>
-#include <unistd.h>
 
 /* See https://github.com/Lorenzsj/meat/wiki for more
    information. */
-
-/* There is an issue where some error returns do not
-   fully free memory. */
 
 enum MAIN_ERRORS
 {
@@ -200,6 +197,7 @@ int main(int argc, char **argv, char **env)
        
         /* Load configuration file */ 
         cfg = cfg_init(opts, CFGF_NONE);
+
         if (cfg_parse(cfg, arguments.config_file) == CFG_PARSE_ERROR) {
             printf("Error loading configuration file\n");
 
@@ -225,6 +223,7 @@ int main(int argc, char **argv, char **env)
     /* Perl */
     char *perl_argv[] = {"meat", "meat.pl"};
     int perl_argc = 2;
+    int perl = 0; // bool - if perl was initalized
 
     /* Check if meat.pl is readable  */
     if (access("meat.pl", R_OK) != -1) {
@@ -239,13 +238,14 @@ int main(int argc, char **argv, char **env)
 
         /* Die if anything goes wrong */
         PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
+
+        perl = 1;
     }
     else {
         if (arguments.logging) {
             zlog_fini();
         
             printf("Stopped logging\n"); // debug
-
         }
 
         return PERL_ERR_FILE;
@@ -257,16 +257,19 @@ int main(int argc, char **argv, char **env)
     if (arguments.logging) {
         /* Close logging file */
         zlog_fini();
-        
 
         printf("Stopped logging\n"); // debug
     }
 
     /* Perl */
-    /* Shutdown interpreter */
-    perl_destruct(my_perl);
-    perl_free(my_perl);
-    PERL_SYS_TERM();
+    if (perl) {
+        /* Shutdown interpreter */
+        perl_destruct(my_perl);
+        perl_free(my_perl);
+        PERL_SYS_TERM();
+
+        printf("Perl interpreter was shutdown\n"); // debug
+    }
 
     return SUCCESS;
 }
