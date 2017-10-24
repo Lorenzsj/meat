@@ -7,10 +7,10 @@ LDIR=/usr/local/lib
 PDIR=/usr/lib/x86_64-linux-gnu/perl/5.22/CORE
 PLDIR=/usr/lib/x86_64-linux-gnu/perl/5.24/CORE
 
-_DEPS = meat.h
+_DEPS = meat.h camel.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o meat.o
+_OBJ = main.o meat.o camel.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 

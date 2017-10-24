@@ -8,18 +8,19 @@
 #include <confuse.h>
 #include <zlog.h>
 #include <meat.h>
+#include <camel.h>
 
 /* See https://github.com/Lorenzsj/meat/wiki for more
    information. */
 
-enum MAIN_ERROR_CODES
+enum MAIN_ERRORS
 {
     /* General */
     SUCCESS = 0,
 
     /* zlog */
     ZLOG_ERR_CONF = 1,
-    ZLOG_ERR_CAT = 2,
+    ZLOG_ERR_CATEGORY = 2,
 
     /* libConfuse */
     CONFUSE_ERR_CONF = 3 
@@ -114,7 +115,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
 /* Perl */
-static PerlInterpreter *my_perl;
+PerlInterpreter *my_perl;
 
 int main(int argc, char **argv, char **env)
 {
@@ -126,18 +127,12 @@ int main(int argc, char **argv, char **env)
     PERL_SYS_INIT3(&argc, &argv, &env);
 
     /* Create interpreter object */
+    /* camel.c has an extern my_perl */
     my_perl = perl_alloc();
     perl_construct(my_perl);
  
-    // perl_parse(my_perl, NULL, argc, argv, NULL);
     perl_parse(my_perl, NULL, perl_argc, perl_argv, NULL);
     PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
-
-    /* Use perl interpreter in a seperate file */
-    printf("Running perl in meat.c\n");
-    meat_perl(my_perl);
-    meat_perl_power(my_perl, 3, 4);
-    printf("Done running perl in meat.c\n");
 
     /* Argp */
     /* Handle command-line arguments */
@@ -154,8 +149,9 @@ int main(int argc, char **argv, char **env)
     
     /* Command-line argument handlers */
     /* zlog */
-    /* Handle logging flag */
     zlog_category_t *debug;
+
+    /* Handle logging flag */
     if (arguments.logging) {
         int rc;
 
@@ -169,14 +165,14 @@ int main(int argc, char **argv, char **env)
         }
 
         /* Select category from file */
-	debug = zlog_get_category("meat");
+	    debug = zlog_get_category("meat");
 
         /* Fail if category is not found */
-	if (!debug) {
-	    printf("zlog: Unable to get category meat\n");
+	    if (!debug) {
+	        printf("zlog: Unable to get category meat\n");
             zlog_fini();
 
-            return ZLOG_ERR_CAT; 
+            return ZLOG_ERR_CATEGORY; 
         }
 
         printf("Started logging\n"); // debug
@@ -228,12 +224,20 @@ int main(int argc, char **argv, char **env)
         printf("Loaded configuration file\n"); // debug
     }
 
+    /* Argp */
     /* Handle abort flag */
     if (arguments.abort) {
         /* This flag is currently useless */
         error(10, 0, "ABORTED");
     }
  
+    /* Use perl interpreter in a seperate file */
+    printf("\nCalling Perl from camel.c\n");
+    camel();
+    camel_power(3, 4);
+    camel_test();
+    printf("Finished calling Perl from camel.c\n\n");
+
     /* Begin Meat loop */
     meat_run();
 
